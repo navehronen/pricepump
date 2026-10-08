@@ -1,0 +1,22 @@
+export const BRANDS = ['Chevron', 'ARCO', 'Shell', '76', 'Mobil', 'Costco', 'Sinclair', '7-Eleven'] as const;
+export type Brand = typeof BRANDS[number];
+export const FUELS = { regular: 'Regular', midgrade: 'Mid-grade', premium: 'Premium' } as const;
+export type FuelGrade = keyof typeof FUELS;
+export type Radius = 5 | 10 | 15;
+export type Sort = 'cheapest' | 'nearest';
+export type Coordinates = { lat: number; lng: number };
+export type FuelPrice = { amount: number; currency: 'USD'; unit: 'US_gal'; updatedAt: string | null };
+export type Station = {
+  id: string; name: string; brand: string; position: Coordinates;
+  address: { label: string; city: string; state: string; postalCode: string; countryCode: 'USA' };
+  prices: Partial<Record<FuelGrade, FuelPrice>>;
+};
+export type LocatedStation = Station & { distanceMiles: number };
+export type PriceTier = 'low' | 'average' | 'high' | 'very-high';
+export const TIER_LABELS: Record<PriceTier, string> = { low: 'Low', average: 'Average', high: 'High', 'very-high': 'Very High' };
+export type Preferences = { radius: Radius; fuel: FuelGrade; brands: Brand[]; sort: Sort };
+export const DEFAULT_PREFERENCES: Preferences = { radius: 5, fuel: 'regular', brands: [], sort: 'cheapest' };
+export type LocationResult = { id: string; label: string; displayName: string; position: Coordinates; countryCode: string };
+export type StationSearch = { center: Coordinates; radius: Radius; offset: number; outer?: boolean };
+export type StationPage = { stations: Station[]; nextOffset: number | null; complete: boolean; fetchedAt: string; total?: number; retrievedCount?: number; limitReason?: 'provider' | 'safety' };
+export type ProviderMode = 'demo' | 'here';
