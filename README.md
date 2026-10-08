@@ -26,7 +26,7 @@ Desktop results:
 
 </details>
 
-All screenshots show sample data. Update these captures before presenting a live deployment.
+The app screenshots show fictional demo data. The separate Apple Maps verification image in `docs/screenshots/apple-web-origin.png` uses a simulated public Irvine origin and a real station destination, not the user's location.
 
 ## MVP features
 
@@ -228,16 +228,28 @@ See [verification notes](docs/VERIFICATION.md) for the checks actually run and t
 
 ## Deploy to Vercel
 
-1. Create a GitHub repository and upload this project. Before committing, inspect `git status`; `.env.local`, `.env`, dependency folders, generated builds, and test traces must not be included. `.env.example` contains placeholders only. A local `main` repository is initialized, but nothing is pushed by the setup.
-2. Import the repository in [Vercel](https://vercel.com/new). Select **Next.js**, Node.js **24.x**, and the directory containing `package.json` as the root.
-3. Use `pnpm install --frozen-lockfile` for installation and `pnpm build` for the build. Keep the default Next.js output settings; this app requires server functions and is not a static export.
-4. In **Project → Settings → Environment Variables**, enter `DATA_PROVIDER=demo` for an initial portfolio preview. No HERE key is needed for that preview.
-5. For live deployment, you personally enter `DATA_PROVIDER=here` and `HERE_API_KEY` with the real value in Vercel's environment variable UI. Set the scope deliberately—Production, and Preview only if desired. Do not paste the key into GitHub or source code. Redeploy after changing environment variables.
-6. In **Project → Firewall → Configure → New Rule**, match request paths beginning `/api/`. Choose Rate Limit, fixed window **60 seconds**, **30 requests**, key **IP**, and action **429**. Review and publish the rule. See [Vercel's current instructions and plan limits](https://vercel.com/docs/vercel-firewall/vercel-waf/rate-limiting). Counters are regional, not a global quota.
-7. Verify HTTPS geolocation, a known US manual search, prices/units/freshness, both map views, directions, errors, and request counts. Watch HERE usage during the first live sessions.
-8. Replace the README status and screenshots only after those live checks pass; add your actual deployment link.
+Preserve the release locally, then push to an initially **private** personal GitHub repository named `price-pump`. Keep the repository root at this app's `package.json`, not the surrounding workspace. Require green GitHub Actions before importing into Vercel. See the [release checklist](docs/RELEASE_CHECKLIST.md) for the manual gates.
 
-**External actions still required:** GitHub/Vercel account setup, private Vercel environment variables, firewall configuration, account usage alerts, and deployment. Local HERE access is verified. Confirm your HERE subscription permits your intended public use and any required attribution before launch. No public deployment or external repository has been created for you. Follow the [release checklist](docs/RELEASE_CHECKLIST.md).
+Use Next.js, production branch `main`, root `.`, Node.js **24.x**, install command `corepack pnpm install --frozen-lockfile`, build command `pnpm build`, and the default Next.js output. The build script explicitly uses Webpack; type checking generates Next's types first. Generated `next-env.d.ts` is intentionally ignored. Do not use static export.
+
+| Variable | Initial Production | Live Production | Preview |
+| --- | --- | --- | --- |
+| `DATA_PROVIDER` | `demo` | `here` | `demo` |
+| `HERE_API_KEY` | Absent | Enter privately in Vercel | Absent |
+| `ENABLE_EXPERIMENTAL_COREPACK` | `1` | `1` | `1` |
+| `NEXT_TELEMETRY_DISABLED` | `1` | `1` | `1` |
+
+Corepack selects the pinned pnpm **11.25.0**. Confirm Node and pnpm versions in the build log. Do not upload `.env.local`, provide HERE secrets to GitHub Actions/Preview, or copy local QA/development variables into Vercel. No other application credentials are required.
+
+**Manual account steps:** sign in to GitHub and Vercel, complete MFA, create the empty private repository, and authorize Vercel for only that repository. Review Hobby's personal/non-commercial terms; do not enable a paid upgrade unintentionally. Deploy in demo mode first.
+
+Before enabling live data, publish a Vercel Firewall rule matching paths beginning `/api/`: Rate Limit, Fixed Window, **30 requests per 60 seconds per IP**, **Default (429)** action. Save, Review Changes, Publish. Verify enforcement and firewall events in demo mode without spending HERE requests. Counters are regional, not a global spending ceiling. Check your HERE account's public-display terms, attribution requirements, usage alerts, and available limits.
+
+**Manual key entry:** in Vercel Project Settings → Environment Variables, enter the real `HERE_API_KEY` for **Production only**, change `DATA_PROVIDER` to `here`, then redeploy. Never paste the key into source or chat. Keep Standard Protection for non-production URLs and verify the production domain opens without login.
+
+Verify the deployed HTTPS site and complete physical-iPhone testing before making GitHub public. Record deployment URL/ID, source SHA, and date. Update this README with the real URL and verified status only after those checks pass. If live operation fails or usage spikes, restore the known demo deployment or set Production `DATA_PROVIDER=demo` and redeploy.
+
+References: [Vercel builds/Corepack](https://vercel.com/docs/builds/configure-a-build), [environment variables](https://vercel.com/docs/environment-variables), [rate limiting](https://vercel.com/docs/vercel-firewall/vercel-waf/rate-limiting), [deployment protection](https://vercel.com/docs/deployment-protection).
 
 ## Production readiness and MVP limits
 

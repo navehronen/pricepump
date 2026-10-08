@@ -1,3 +1,16 @@
+# Deployment preparation — October 7, 2026
+
+- Original verified MVP preserved at `b523923eb287362228d7dbb9e0b00ba8afd12c85`, tag `mvp-verified-local`.
+- With explicit owner approval, patched Next.js 16.3.6 → 16.3.8 (including its required same-version `@next/env` and platform compiler packages) and source-map-js 1.2.1 → 1.2.2. Reviewed lockfile: no unrelated dependency versions changed. pnpm audit reports **zero vulnerabilities** after these patches.
+- Deployment-only settings: Node 24.x, pinned pnpm 11.25.0, explicit Webpack build, generated type checking, ignored next-env.d.ts, and Node setup before pnpm in CI.
+- Clean detached checkout from the original commit plus the reviewed release configuration: no copied node_modules, .next, or .env.local. Frozen-lockfile installation completed with pnpm 11.25.0; type generation/TypeScript passed; **55 unit/server tests passed**, six paid live tests skipped; **Webpack production build passed**; **29 Chromium browser tests passed** against that production build in demo mode with an empty HERE key.
+- Windows sandbox permissions required a local pnpm store and hoisted install layout, granting generated-output write access, and precreating generated directories. pnpm's automatic dependency reinstallation was disabled only in the test command environment after frozen installation. These are local execution workarounds, not repository or application changes. Linux GitHub Actions with the normal install remains a required external gate.
+- Also reran type checking and 55 unit/server tests in the primary checkout after installation.
+- Exact-key scan: zero matches in 72 tracked source/documentation/assets and 32 newly built browser assets. Real environment files remain ignored and untracked. No HERE key was copied to the clean checkout.
+- Existing screenshot files were preserved; regenerated test captures remain only in the disposable checkout. The Apple Maps screenshot uses a simulated public Irvine origin, as documented below.
+- No feature, UI, radius, geolocation, or directions code changed. Hosted checks, firewall enforcement, GitHub CI, and physical-iPhone testing are not established by these local results.
+
+---
 # Verification report
 
 ## Final Apple Maps handoff — October 7, 2026

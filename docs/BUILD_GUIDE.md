@@ -58,9 +58,9 @@ The memory limiter isn't sufficient for a large distributed deployment because d
 
 ## Run and deploy
 
-For local demo use: `pnpm install --frozen-lockfile`, copy `.env.example` to `.env.local`, then `pnpm dev`. For a production build: `pnpm build` and `pnpm start`.
+Use Node 24.x and pnpm 11.25.0. `pnpm typecheck` generates Next.js types before checking TypeScript; `pnpm build` explicitly uses Webpack. For local demo use: `pnpm install --frozen-lockfile`, copy `.env.example` to `.env.local`, then `pnpm dev`. For a production build: `pnpm build` and `pnpm start`.
 
-To enable HERE, put the key in the ignored `.env.local`, set `DATA_PROVIDER=here`, and restart. To deploy, import the repository in Vercel and enter the same variables privately in the deployment settings. Vercel needs a redeployment after environment changes. See the README for exact steps and the firewall configuration.
+To enable HERE, put the key in the ignored `.env.local`, set `DATA_PROVIDER=here`, and restart. To deploy, follow the README: start with demo mode, enable Corepack for pinned pnpm, publish and verify the firewall rule, then privately enter the HERE key for Production only. Preview builds stay in demo mode without a key. Vercel needs a redeployment after environment changes. See the README for exact steps and the firewall configuration.
 
 ## Interview talking points
 
