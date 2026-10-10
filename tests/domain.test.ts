@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { averagePrice, classifyPrices, coarseCenter, distanceMiles, mergeStations, selectStations } from '@/lib/domain/stations';
+import { classifyPrices, coarseCenter, distanceMiles, mergeStations, selectStations } from '@/lib/domain/stations';
 import { freshness } from '@/lib/domain/freshness';
 import { parsePreferences } from '@/lib/domain/preferences';
 import { DEFAULT_PREFERENCES, type Station } from '@/lib/domain/types';
@@ -9,7 +9,7 @@ const center = { lat: 33.6846, lng: -117.8265 };
 describe('relative price classification', () => {
   it('distributes 100 unique prices into 25/50/15/10 groups', () => {
     const tiers = [...classifyPrices(Array.from({ length: 100 }, (_,i) => station(String(i), 3 + i / 100)), 'regular').values()];
-    expect(['low','average','high','very-high'].map(t => tiers.filter(x => x === t).length)).toEqual([25,50,15,10]);
+    expect(['low','typical','high','very-high'].map(t => tiers.filter(x => x === t).length)).toEqual([25,50,15,10]);
   });
   it('is independent of absolute area price', () => {
     const a = Array.from({ length: 20 }, (_,i) => station(String(i), 3 + i / 10));
@@ -17,16 +17,15 @@ describe('relative price classification', () => {
     expect([...classifyPrices(a, 'regular')]).toEqual([...classifyPrices(b, 'regular')]);
   });
   it('keeps ties together and handles a singleton and all-equal sets', () => {
-    expect([...classifyPrices([station('a',4),station('b',4)], 'regular').values()]).toEqual(['average','average']);
-    expect(classifyPrices([station('a',4)], 'regular').get('a')).toBe('average');
+    expect([...classifyPrices([station('a',4),station('b',4)], 'regular').values()]).toEqual(['typical','typical']);
+    expect(classifyPrices([station('a',4)], 'regular').get('a')).toBe('typical');
     const tiers = classifyPrices([station('a',4), station('b',4), station('c',5), station('d',6)], 'regular');
     expect(tiers.get('a')).toBe(tiers.get('b'));
   });
   it('excludes missing, zero, NaN, and negative prices', () => {
     const data = [station('missing'), station('zero',0), station('nan',NaN), station('negative',-1),station('good',4)];
     expect([...classifyPrices(data,'regular').keys()]).toEqual(['good']);
-    expect(averagePrice(data, 'regular')).toBe(4);
-    expect(averagePrice(data, 'premium')).toBeNull();
+    expect(classifyPrices(data, 'premium').size).toBe(0);
   });
 });
 describe('filtering, sorting, and geometry', () => {

@@ -6,7 +6,9 @@ Drivers often trade off price, distance, fuel grade, and preferred brands across
 
 > **Live app:** [pricepump.vercel.app](https://pricepump.vercel.app) — deployed on Vercel with live HERE data. PricePump helps drivers compare nearby US gas stations by price, distance, fuel grade, and brand. No accounts or database are required.
 
-> **Verification:** 55 unit/server tests and 29 Chromium browser tests cover business rules, accessibility, mobile/desktop layouts, and pagination. Hosted live HERE and firewall checks passed. The project owner reported successful desktop/mobile manual testing and final physical-iPhone QA on the live site on October 9, 2026. Device/iOS versions were not recorded; this is not broad device certification. See [verification details](docs/VERIFICATION.md).
+> **Verification:** 58 unit/component/server tests and 29 Chromium browser tests cover business rules, accessibility, mobile/desktop layouts, and pagination. Hosted live HERE and firewall checks passed. The project owner reported successful desktop/mobile manual testing and final physical-iPhone QA on the live site on October 9, 2026. Device/iOS versions were not recorded; this is not broad device certification. See [verification details](docs/VERIFICATION.md).
+
+The v1.0.1 patch removes aggregate fuel-price statistics and adds live HERE notices; hosted verification of this patch follows its push and deployment. See [HERE notice review](docs/HERE_NOTICES.md) for scope and the account-specific cache-permission question.
 
 ## Screenshots
 
@@ -36,7 +38,7 @@ The app screenshots show fictional demo data. The separate Apple Maps verificati
 - 5, 10, and 15-mile radii; Regular, Mid-grade, and Premium.
 - Multi-select Chevron, ARCO, Shell, 76, Mobil, Costco, Sinclair, and 7-Eleven; Any Brand also includes independent/unlisted brands.
 - Cheapest or Nearest sorting, with missing prices always last.
-- Relative price tiers with color **and text**: Low, Average, High, Very High.
+- Relative price tiers with color **and text**: Low, Typical, High, Very High.
 - Price-specific freshness warnings at more than 24 and 48 hours.
 - Station details, all available fuel grades, and Google/Apple Maps directions.
 - List and OpenStreetMap views with price markers and required attribution.
@@ -174,17 +176,17 @@ percentile = (((first + last) / 2) + 0.5) / validPriceCount
 | Percentile | Label | Color |
 | --- | --- | --- |
 | Under 25% | Low | Green |
-| 25% to under 75% | Average | Yellow |
+| 25% to under 75% | Typical | Yellow |
 | 75% to under 90% | High | Orange |
 | 90% and above | Very High | Red |
 
-One valid price or an all-equal set is Average. Small sets need not contain every tier. Ties are never split merely to force exact group sizes. Categories are relative to **currently loaded, matching stations**, not a claim about regional market averages. The summary average uses valid selected-grade prices, including clearly flagged stale prices.
+One valid price or an all-equal set is Typical. Small sets need not contain every tier. Ties are never split merely to force exact group sizes. Categories are relative to **currently loaded, matching stations**, not a regional market statistic.
 
 Prices more than 24 hours old are flagged as potentially outdated; more than 48 hours old get the stronger warning. Unknown or implausibly future timestamps say “Update time unavailable.” Price display rounds to cents; comparisons retain provider precision.
 
 Cheapest sorts valid prices first, then distance and ID. Nearest sorts valid-price stations by straight-line distance, then ID. Missing prices come last in both modes. This is deliberately different from a pure distance sort.
 
-Only 20 cards initially render. Show More reveals 20 additional locally available matches; only when those are exhausted does it fetch one more HERE page. Map view displays all loaded matches, so its Show More requests another page directly. New pages can change ordering, averages, and tiers. Until the provider is exhausted, the summary explicitly says the comparison uses loaded stations; it cannot guarantee the cheapest station across the entire area.
+Only 20 cards initially render. Show More reveals 20 additional locally available matches; only when those are exhausted does it fetch one more HERE page. Map view displays all loaded matches, so its Show More requests another page directly. New pages can change ordering and tiers. Until the provider is exhausted, the summary explicitly says the comparison uses loaded stations; it cannot guarantee the cheapest station across the entire area.
 
 ## Privacy
 

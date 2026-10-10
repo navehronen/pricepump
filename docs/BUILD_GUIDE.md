@@ -25,7 +25,7 @@ The absence of a database is a scope decision, not an assertion that databases a
 | `src/lib/domain/types.ts` | The internal data contract; UI components depend on this, not HERE JSON |
 | `src/lib/providers/here.ts` | Private network requests to HERE |
 | `src/lib/providers/normalize.ts` | Fuel IDs, units, brands, missing data, and timestamps |
-| `src/lib/domain/stations.ts` | Distances, sorting, filtering, averages, and price tiers |
+| `src/lib/domain/stations.ts` | Distances, sorting, filtering and price tiers |
 | `src/lib/server` | Cache, rate limiter, request validation, and safe errors |
 | `src/components/StationMap.tsx` | Leaflet display, safe popup content, and map lifecycle |
 | `tests` | Examples that specify expected behavior and protect changes |
@@ -34,9 +34,9 @@ The absence of a database is a scope decision, not an assertion that databases a
 
 “Cheap” depends on the area. A $4.50 price might be low in one city and high in another, so hard-coding dollar thresholds would mislead people.
 
-Price Pump compares each valid selected-grade price with the other currently loaded matching prices. Roughly the bottom quarter are Low, the middle half Average, the next 15% High, and the top 10% Very High. Equal prices receive the same classification. If every price is equal, they are all Average. Missing prices receive no tier and come last.
+Price Pump compares each valid selected-grade price with the other currently loaded matching prices. Roughly the bottom quarter are Low, the middle half Typical, the next 15% High, and the top 10% Very High. Equal prices receive the same classification. If every price is equal, they are all Typical. Missing prices receive no tier and come last.
 
-For example, with 100 distinct prices, 25 are Low, 50 Average, 15 High, and 10 Very High. With two identical prices, both are Average. Ties and very small groups make exact percentages impossible, which is why the algorithm prioritizes consistent treatment rather than perfect quotas.
+For example, with 100 distinct prices, 25 are Low, 50 Typical, 15 High, and 10 Very High. With two identical prices, both are Typical. Ties and very small groups make exact percentages impossible, which is why the algorithm prioritizes consistent treatment rather than perfect quotas.
 
 Loading more stations can change a station's tier without its price changing. The comparison set changed. The interface explicitly explains this limitation.
 

@@ -1,5 +1,18 @@
 # PricePump v1.0.0 release verification — October 9, 2026
 
+## v1.0.1 supplier-notice patch — October 9, 2026
+
+- Removed the numerical aggregate fuel-price helper, UI prop/memo, display, and obsolete test assertions. Missing-price messaging remains. The middle percentile label is Typical; ranking math and colors are unchanged.
+- Added live-mode HERE source attribution, supplier restriction notices, and end-user/privacy links, including a data-transfer notice before search. See [review scope and account-specific follow-up](HERE_NOTICES.md).
+- Type checking and the Webpack production build passed. Unit/component/server suite: **58 passed**, with the **6 opt-in paid live tests skipped**. No dependencies changed.
+- Browser suite: **29 passed** with a clean runner exit against a separately managed demo server. It covers the existing 29 workflows, including radius sampling, directions, pagination, keyboard focus, accessibility, and phone/desktop bounds. Refreshed app screenshots contain fictional data and no aggregate price display. The historical Apple Maps image is unchanged.
+- Additional live-mode UI checks used an empty credential and intercepted API responses at 390×844 and 1440×844: notices/links visible before search and on results, no horizontal overflow, no aggregate price in the summary. No paid HERE requests were made. Visually inspected phone notices and mobile/desktop results.
+- Exact-key scan found **zero matches** in publishable files, all existing Git-history blobs, generated build output, and test artifacts. Real environment files remain ignored; HERE credential access remains server-only. Key values and matching lines were never printed.
+- The radius browser test now waits for final pagination completion before changing radius. This removes a test race between an in-flight mocked response and the cached-radius assertion; application behavior is unchanged. The initially managed server shutdown stalled on Windows, so final verification uses the existing external-demo-server option.
+- Windows sandbox EPERM issues were resolved by using the project-local temporary directory and precreating the required generated build folders; no application workaround was introduced.
+- Physical-iPhone success reported by the owner and GitHub CI success for main/v1.0.0 predate this patch. The new tag is v1.0.1; v1.0.0 is preserved. Push/redeployment and a focused hosted/iPhone notice check remain pending. Repository visibility is unchanged.
+
+
 Live site: [https://pricepump.vercel.app](https://pricepump.vercel.app).
 
 ## Hosted and physical-device verification

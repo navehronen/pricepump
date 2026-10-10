@@ -33,6 +33,8 @@ test('real demo endpoints: manual lookup, address ambiguity, and initial 20 resu
   await expect(page.getByText('Choose your location')).toBeVisible();
   await page.getByRole('button',{name:'Irvine, CA, USA',exact:true}).click();
   await expect(page.locator('.station-card')).toHaveCount(20);
+  await expect(page.locator('.results-summary')).not.toContainText(/Avg\.|average|\$|\/gal/i);
+  await expect(page.locator('.tier-badge').filter({hasText:'Typical'}).first()).toBeVisible();
   await expect(page.getByRole('combobox',{name:'Fuel grade'})).toHaveValue('regular');
   await expect(page.getByRole('combobox',{name:'Sort by'})).toHaveValue('cheapest');
 });
@@ -320,6 +322,10 @@ test('radius changes immediately sample outer stations with bounded calls and pr
   for(let i=0;i<3;i++) await page.getByRole('button',{name:'Show More',exact:true}).click();
   await expect(page.locator('.map-price-pin')).toHaveCount(210); expect(requests.at(-1)?.body.offset).toBe(150); expect(requests.at(-1)?.body.radius).toBe(15);
   if(await page.getByRole('button',{name:'Show More',exact:true}).isVisible()) await page.getByRole('button',{name:'Show More',exact:true}).click();
+  // All sampled pins can be present before the last page confirms complete coverage.
+  // Wait for completion before testing reuse of the fully loaded larger radius.
+  await expect(page.locator('.results-summary')).toContainText('210 stations found');
+  await expect(page.getByRole('button',{name:'Show More',exact:true})).toHaveCount(0);
   await page.getByRole('combobox',{name:'Radius',exact:true}).selectOption('10'); await expect(page.locator('.map-price-pin')).toHaveCount(160);
   const count=requests.length;
   await page.getByRole('combobox',{name:'Radius',exact:true}).selectOption('5'); await expect(page.locator('.map-price-pin')).toHaveCount(100); expect(requests).toHaveLength(count);

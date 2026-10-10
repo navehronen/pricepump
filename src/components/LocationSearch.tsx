@@ -2,6 +2,7 @@
 import { useRef, useState } from 'react';
 import { LocateFixed, Search, MapPin, LoaderCircle } from 'lucide-react';
 import type { Coordinates, LocationResult, ProviderMode } from '@/lib/domain/types';
+import { HereNotice } from './HereNotice';
 import { api } from '@/lib/client';
 import { DEMO_LOCATION } from '@/lib/providers/demo';
 export function LocationSearch({ mode, onSelect, onLocate, busy, compact = false }: { mode: ProviderMode; onSelect: (location: LocationResult) => void; onLocate: (point: Coordinates) => void; busy: boolean; compact?: boolean }) {
@@ -30,6 +31,7 @@ export function LocationSearch({ mode, onSelect, onLocate, busy, compact = false
     }, { enableHighAccuracy: false, timeout: 10_000, maximumAge: 60_000 });
   }
   return <div className={`location-search ${compact ? 'location-compact' : ''}`}>
+    {mode === 'here' && <HereNotice search />}
     <button className="button primary locate-button" onClick={locate} disabled={busy || working}>{working ? <LoaderCircle className="spin" size={20} /> : <LocateFixed size={20} />} Use My Location</button>
     {!compact && <div className="divider-label"><span />or search somewhere else<span /></div>}
     <form onSubmit={search} className="address-form">

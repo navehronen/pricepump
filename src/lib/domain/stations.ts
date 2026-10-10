@@ -37,13 +37,9 @@ export function classifyPrices(stations: Station[], fuel: FuelGrade): Map<string
     const price = validPrice(station, fuel);
     if (price === null) continue;
     const p = ranks.get(price)!;
-    result.set(station.id, p < 0.25 ? 'low' : p < 0.75 ? 'average' : p < 0.9 ? 'high' : 'very-high');
+    result.set(station.id, p < 0.25 ? 'low' : p < 0.75 ? 'typical' : p < 0.9 ? 'high' : 'very-high');
   }
   return result;
-}
-export function averagePrice(stations: Station[], fuel: FuelGrade): number | null {
-  const values = stations.map(s => validPrice(s, fuel)).filter((v): v is number => v !== null);
-  return values.length ? values.reduce((a,b) => a+b, 0) / values.length : null;
 }
 export function mergeStations(previous: Station[], incoming: Station[]): Station[] {
   return [...new Map([...previous, ...incoming].map(s => [s.id, s])).values()];

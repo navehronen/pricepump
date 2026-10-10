@@ -11,13 +11,14 @@ import { StationCard } from './StationCard';
 import { StationDetails } from './StationDetails';
 import { EmptyState, ErrorState, LoadingState } from './States';
 import { DEFAULT_PREFERENCES, FUELS, TIER_LABELS, type Coordinates, type LocatedStation, type LocationResult, type Preferences, type ProviderMode, type Radius, type Station, type StationPage } from '@/lib/domain/types';
-import { averagePrice, classifyPrices, coarseCenter, mergeStations, selectStations } from '@/lib/domain/stations';
+import { HereNotice } from './HereNotice';
+import { validPrice, classifyPrices, coarseCenter, mergeStations, selectStations } from '@/lib/domain/stations';
 import { parsePreferences, PREFERENCE_KEY, savePreferences } from '@/lib/domain/preferences';
 import { api } from '@/lib/client';
 import { DEMO_LOCATION } from '@/lib/providers/demo';
 const StationMap = dynamic(() => import('./StationMap'), { ssr: false, loading: () => <LoadingState /> });
 function PriceGuide() {
-  return <aside className="price-guide"><div className="guide-icon"><Fuel size={22} /></div><h3>A little color.<br /> A clearer choice.</h3><p>See how each price compares with the matching stations you’ve loaded.</p><div className="price-scale">{Object.entries(TIER_LABELS).map(([key,label]) => <div key={key}><span className={`scale-swatch swatch-${key}`} /><span>{label}</span><span>{key === 'low' ? 'Lower prices' : key === 'average' ? 'Middle of the pack' : key === 'high' ? 'Above average' : 'Highest prices'}</span></div>)}</div><div className="guide-note"><ShieldCheck size={18} /><span>No accounts. No location history.<br />Just your next fill-up.</span></div></aside>;
+  return <aside className="price-guide"><div className="guide-icon"><Fuel size={22} /></div><h3>A little color.<br /> A clearer choice.</h3><p>See how each price compares with the matching stations you’ve loaded.</p><div className="price-scale">{Object.entries(TIER_LABELS).map(([key,label]) => <div key={key}><span className={`scale-swatch swatch-${key}`} /><span>{label}</span><span>{key === 'low' ? 'Lower prices' : key === 'typical' ? 'Middle of the pack' : key === 'high' ? 'Higher prices' : 'Highest prices'}</span></div>)}</div><div className="guide-note"><ShieldCheck size={18} /><span>No accounts. No location history.<br />Just your next fill-up.</span></div></aside>;
 }
 export default function PricePumpApp({ mode }: { mode: ProviderMode }) {
   const [prefs, setPrefs] = useState<Preferences>(DEFAULT_PREFERENCES), [ready, setReady] = useState(false);
@@ -81,7 +82,7 @@ export default function PricePumpApp({ mode }: { mode: ProviderMode }) {
   }
   const matching = useMemo(() => location ? selectStations(stations, location.position, prefs) : [], [stations, location, prefs]);
   const tiers = useMemo(() => classifyPrices(matching, prefs.fuel), [matching, prefs.fuel]);
-  const average = useMemo(() => averagePrice(matching, prefs.fuel), [matching, prefs.fuel]);
+  const hasPrices = useMemo(() => matching.some(station => validPrice(station, prefs.fuel) !== null), [matching, prefs.fuel]);
   const selected = details ? matching.find(s => s.id === details.id) : undefined;
   const openDetails = useCallback((station: LocatedStation) => setDetails({ id: station.id, directionsOnly: false }), []);
   async function showMore() {
@@ -114,7 +115,7 @@ export default function PricePumpApp({ mode }: { mode: ProviderMode }) {
         <section className="results-heading"><div><span className="eyebrow">YOUR NEXT FILL-UP</span><h1>Good prices. <span>Close by.</span></h1><button className="current-location" onClick={() => setChangeLocation(!changeLocation)} aria-expanded={changeLocation}><MapPin size={17} /><strong>{location.displayName}</strong><span>Change location</span></button></div><div className="results-heading-note"><Fuel size={19} /><span>A better stop starts<br />with a little comparison.</span></div></section>
         {changeLocation && <section className="change-location-panel" aria-label="Change location"><button className="icon-button close-location" aria-label="Close location search" onClick={() => setChangeLocation(false)}><X size={18} /></button><LocationSearch compact mode={mode} onSelect={chooseLocation} onLocate={locate} busy={busy} /></section>}
         <Filters prefs={prefs} onChange={updatePreferences} />
-        <div className="results-layout"><section className="results-column" aria-label="Gas station results"><div className="results-toolbar"><ResultsSummary count={matching.length} average={average} radius={prefs.radius} outerStatus={outerStatus} {...coverage} /><ListMapToggle view={view} onChange={v => { setView(v); if (v === 'map') setMapVisited(true); }} /></div>
+        <div className="results-layout"><section className="results-column" aria-label="Gas station results"><div className="results-toolbar"><ResultsSummary count={matching.length} hasPrices={hasPrices} radius={prefs.radius} outerStatus={outerStatus} {...coverage} /><ListMapToggle view={view} onChange={v => { setView(v); if (v === 'map') setMapVisited(true); }} /></div>
           {error && <ErrorState message={error} retry={() => { if (stations.length) void showMore(); else void runSearch(location, prefs.radius); }} />}
           {busy ? <LoadingState /> : <>
             {!matching.length && !error && <EmptyState radius={prefs.radius} partial={!coverage.complete} canLoadMore={nextOffset !== null} increase={prefs.radius < 15 ? () => updatePreferences({ ...prefs, radius: prefs.radius === 5 ? 10 : 15 }) : undefined} reset={prefs.brands.length ? () => updatePreferences({ ...prefs, brands: [] }) : undefined} />}
@@ -126,6 +127,7 @@ export default function PricePumpApp({ mode }: { mode: ProviderMode }) {
           <p className="results-disclaimer">{FUELS[prefs.fuel]} · USD per US gallon · Straight-line distances<br />Prices can change. Check the price at the pump before filling up.</p>
         </section><PriceGuide /></div>
       </>}
+      {mode === 'here' && <HereNotice />}
     </main>
     <footer className="site-footer"><div><BrandMark compact /><span>Find your better fill-up.</span></div><button className="footer-privacy" onClick={() => setPrivacy(!privacy)} aria-expanded={privacy}>Privacy & data<ArrowUpRight size={14} /></button></footer>
     {privacy && <section className="privacy-panel"><h2>Your location, your choice.</h2><p>Price Pump saves only your radius, fuel grade, brands, and sort preference on this device. It never saves your location history. Fuel searches use an approximate area center; your browser calculates exact distances.</p><p>Manual addresses are sent through our server to HERE for lookup, without application caching or logging. HERE processes live searches. OpenStreetMap receives map-tile requests, and your chosen maps app receives the destination when you ask for directions. Hosting and service providers may keep their own operational logs.</p><button className="text-button" onClick={() => setPrivacy(false)}>Close privacy details</button></section>}

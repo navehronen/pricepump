@@ -2,6 +2,10 @@
 
 Release status — October 9, 2026: live production is available at [pricepump.vercel.app](https://pricepump.vercel.app). GitHub Actions passed for release candidate fffbc14. Hosted HERE checks and firewall enforcement passed, and the owner reported final physical-iPhone QA passed on the live site. GitHub remains private; visibility changes require the owner. The steps below remain a reproducible release/rollback checklist.
 
+## v1.0.1 patch gate
+
+The owner confirmed CI passed for `main` and `v1.0.0`. The follow-up patch removes aggregate fuel-price statistics, updates screenshots, and adds live HERE notices. Preserve existing tags; push `main` and `v1.0.1` without force. Wait for CI and Vercel, then confirm the updated summary and notices on desktop/iPhone. Do not make GitHub public yet. Review the account-specific cache permission noted in [HERE notices](HERE_NOTICES.md). Existing physical-iPhone success describes v1.0.0; the patch needs a focused hosted smoke check.
+
 ## 1. Publish source to GitHub
 
 - Manually sign in to GitHub and create an empty **private** repository named `pricepump` under your personal account; do not initialize extra files. Use `outputs/price-pump` as the repository root (the folder containing `package.json`).
