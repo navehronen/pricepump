@@ -4,7 +4,9 @@
 
 Drivers often trade off price, distance, fuel grade, and preferred brands across several apps. Price Pump puts those decisions in one focused interface: choose an area, compare nearby stations, and open directions. No account or database required.
 
-> **Current status:** The MVP supports explicit demo and live modes. Live HERE integration was checked for Irvine, Seattle, Houston, Chicago, New York, Honolulu, and Lusk, Wyoming on September 29, 2026. The October 7 follow-up passed 55 unit/server tests and 29 browser tests, including mobile layout and pagination beyond 150. The earlier geographic QA passed 6 opt-in live checks. See the verification report for scope and limitations. Screenshots show fictional demo data. No public deployment has been made.
+> **Live app:** [pricepump.vercel.app](https://pricepump.vercel.app) — deployed on Vercel with live HERE data. PricePump helps drivers compare nearby US gas stations by price, distance, fuel grade, and brand. No accounts or database are required.
+
+> **Verification:** 55 unit/server tests and 29 Chromium browser tests cover business rules, accessibility, mobile/desktop layouts, and pagination. Hosted live HERE and firewall checks passed. The project owner reported successful desktop/mobile manual testing and final physical-iPhone QA on the live site on October 9, 2026. Device/iOS versions were not recorded; this is not broad device certification. See [verification details](docs/VERIFICATION.md).
 
 ## Screenshots
 
@@ -228,7 +230,7 @@ See [verification notes](docs/VERIFICATION.md) for the checks actually run and t
 
 ## Deploy to Vercel
 
-Preserve the release locally, then push to an initially **private** personal GitHub repository named `price-pump`. Keep the repository root at this app's `package.json`, not the surrounding workspace. Require green GitHub Actions before importing into Vercel. See the [release checklist](docs/RELEASE_CHECKLIST.md) for the manual gates.
+Preserve the release locally, then push to an initially **private** personal GitHub repository named `pricepump`. Keep the repository root at this app's `package.json`, not the surrounding workspace. Require green GitHub Actions before importing into Vercel. See the [release checklist](docs/RELEASE_CHECKLIST.md) for the manual gates.
 
 Use Next.js, production branch `main`, root `.`, Node.js **24.x**, install command `corepack pnpm install --frozen-lockfile`, build command `pnpm build`, and the default Next.js output. The build script explicitly uses Webpack; type checking generates Next's types first. Generated `next-env.d.ts` is intentionally ignored. Do not use static export.
 
@@ -255,7 +257,7 @@ References: [Vercel builds/Corepack](https://vercel.com/docs/builds/configure-a-
 
 Implemented and locally verified: buildable responsive UI, normalized provider boundary, secret separation, input validation, local preferences, business rules, controlled pagination, basic abuse safeguards, and automated regression tests.
 
-Still MVP-level: process-local cache/rate limit, progressive rather than exhaustive cheapest-station search, basic brand aliases, straight-line distance, public OpenStreetMap tiles without an SLA, no operational monitoring dashboard, and no guarantee of provider completeness or current pump prices. Native iOS/Safari/Android and hosted HTTPS smoke tests remain outstanding. Successful checks in seven areas do not prove nationwide coverage. At higher map traffic, select a suitable OSM-compatible tile host under the [OpenStreetMap tile usage policy](https://operations.osmfoundation.org/policies/tiles/); do not bulk-prefetch tiles.
+Still MVP-level: process-local cache/rate limit, progressive rather than exhaustive cheapest-station search, basic brand aliases, straight-line distance, public OpenStreetMap tiles without an SLA, no operational monitoring dashboard, and no guarantee of provider completeness or current pump prices. Hosted HTTPS smoke checks passed, and the owner reported successful physical-iPhone QA. Broader iOS/browser coverage, physical Android testing, load testing, and a human screen-reader audit remain unverified. Successful checks in seven areas do not prove nationwide coverage. At higher map traffic, select a suitable OSM-compatible tile host under the [OpenStreetMap tile usage policy](https://operations.osmfoundation.org/policies/tiles/); do not bulk-prefetch tiles.
 
 The cash/credit distinction is deliberately deferred: the app does not assert that the displayed standard price is the price for a particular payment method.
 

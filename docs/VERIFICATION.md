@@ -1,3 +1,28 @@
+# PricePump v1.0.0 release verification — October 9, 2026
+
+Live site: [https://pricepump.vercel.app](https://pricepump.vercel.app).
+
+## Hosted and physical-device verification
+
+- GitHub Actions run [37728401108](https://github.com/navehronen/pricepump/actions/runs/37728401108) passed for release candidate `fffbc14e4901cf0104acb14046911d140c160ecd`.
+- Hosted demo was verified over public HTTPS, then Production was redeployed with live HERE data. Controlled live checks resolved Irvine, returned 50 stations (46 regular prices), confirmed USD per US gallon, partial pagination, and a cached repeat response. This is a smoke check, not nationwide coverage or a price-accuracy guarantee.
+- The owner reported successful manual desktop/mobile tests and final physical-iPhone QA on the live production site. Device model and iOS/browser versions were not supplied. This report distinguishes owner-reported physical testing from automated Chromium checks; it does not claim comprehensive device certification.
+- Vercel dashboard inspection confirms Production `DATA_PROVIDER=here` and `HERE_API_KEY` scoped to Production only. Preview `DATA_PROVIDER` is a write-only secret scoped to Preview; the owner explicitly confirmed its value remains `demo`. Its value was not extracted or exposed. No Preview HERE key appears in the project environment inventory.
+- The enabled Vercel `PricePump API rate limit` rule matches paths starting `/api/`, with a fixed 60-second window, 30 requests per IP, and HTTP 429. Enforcement was verified in demo mode and again after live deployment using GET probes that cannot invoke HERE or the app's POST-only limiter. API access recovered after the window; the homepage remained available. The final release pass rechecked the enabled configuration without repeating a request burst.
+
+## Final local regression and publication checks
+
+- Type generation and TypeScript passed; **55 unit/server tests passed**, six opt-in paid live checks skipped; **Webpack production build passed**; **29 production Chromium browser tests passed** in 26.3 seconds.
+- Tests used demo mode and an empty HERE key. Coverage includes 390/393px phones and desktop, keyboard/dialog accessibility, price tiers, stale/missing prices, radius samples and cached switching, pagination, List/Map, and shared directions destinations.
+- Exact-key scan found no matches in 72 tracked files, 81 historical Git blobs, 180 generated build/test files, nine deployed page-linked JS/CSS assets, HTML, or the checked validation response. Earlier controlled successful live API responses also had zero matches. These checks use the locally configured HERE key without printing it; they do not retrieve Vercel's write-only key.
+- Source review confirms `server-only` provider imports and server route handlers; no HERE credential is configured as `NEXT_PUBLIC_`. Real `.env.local` remains ignored and untracked; the public `.env` and `.env.local` paths return 404. Ignored environment files intentionally retain the local key and are excluded from publication.
+- Final dependency audit reported zero vulnerabilities. Only release documentation changed in this final pass. Existing documentation screenshots were preserved after tests regenerated disposable copies. No application features, design, dependencies, or provider behavior changed.
+
+GitHub visibility remains private. Publication is a separate owner action after the final push. HERE account-specific public-display terms, attribution obligations, and usage alerts must be confirmed by the owner; application tests do not audit those account settings. Remaining MVP limits include regional/process-local abuse controls, partial station coverage, stale/missing prices, straight-line distances, and unverified physical Android/screen-reader/load coverage.
+
+The historical entries below retain their original dates and are superseded by this release status where applicable.
+
+---
 # Deployment preparation — October 7, 2026
 
 - Original verified MVP preserved at `b523923eb287362228d7dbb9e0b00ba8afd12c85`, tag `mvp-verified-local`.

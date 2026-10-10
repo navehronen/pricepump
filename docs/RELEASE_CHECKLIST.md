@@ -1,10 +1,10 @@
 # Price Pump V1 release checklist
 
-Local live integration and regression QA passed on September 29, 2026. This is a checklist for a controlled public V1 launch, not a claim that deployment is complete.
+Release status — October 9, 2026: live production is available at [pricepump.vercel.app](https://pricepump.vercel.app). GitHub Actions passed for release candidate fffbc14. Hosted HERE checks and firewall enforcement passed, and the owner reported final physical-iPhone QA passed on the live site. GitHub remains private; visibility changes require the owner. The steps below remain a reproducible release/rollback checklist.
 
 ## 1. Publish source to GitHub
 
-- Manually sign in to GitHub and create an empty **private** repository named `price-pump` under your personal account; do not initialize extra files. Use `outputs/price-pump` as the repository root (the folder containing `package.json`).
+- Manually sign in to GitHub and create an empty **private** repository named `pricepump` under your personal account; do not initialize extra files. Use `outputs/price-pump` as the repository root (the folder containing `package.json`).
 - Keep `.env.local` private. `.env.example` must contain a blank key. Never upload the whole workspace or test traces.
 - From the project terminal, run `git check-ignore .env.local` and `git ls-files -- .env.local`: the first should print the filename, and the second should print nothing. These commands do not display the key.
 - Stage source with `git add .`, then review `git diff --cached --name-only` before committing. No `.env.local`, `.next`, `node_modules`, `.vercel`, or test report/trace files should appear. Do not use `git add -f` on ignored files.
@@ -44,9 +44,9 @@ Local live integration and regression QA passed on September 29, 2026. This is a
 
 Prices can be stale or missing, and some provider entries may have no gasoline prices. Cash/credit, membership eligibility, station access restrictions, and precise pump-price accuracy are not guaranteed. Distance is straight-line, including across water or state borders. Prices/rankings describe loaded matching stations, not an exhaustive cheapest-station guarantee. Only eight named brands are selectable; Any Brand includes all provider brands. No accounts, persistent location storage, history, or database exist. Automated accessibility checks do not replace a human screen-reader audit. No load test or physical-device certification has been performed.
 
-## Physical iPhone release gate (manual)
+## Physical iPhone regression checklist (owner reported passed)
 
-Use Safari on the public HTTPS production domain. Record the device, iOS/browser version, date, deployment URL/ID, and source commit SHA.
+The owner reported this release gate passed on October 9, 2026. Device model and iOS/browser versions were not supplied. For future releases, use Safari on the public HTTPS production domain and record those details with the deployment/source revision.
 
 - Test location permission allowed and denied; recover using manual city/ZIP search.
 - Search a different city; navigation must still use your device location as its origin.
