@@ -13,7 +13,7 @@ export type Station = {
 };
 export type LocatedStation = Station & { distanceMiles: number };
 export type PriceTier = 'low' | 'typical' | 'high' | 'very-high';
-export const TIER_LABELS: Record<PriceTier, string> = { low: 'Low', typical: 'Typical', high: 'High', 'very-high': 'Very High' };
+export const TIER_LABELS: Record<PriceTier, string> = { low: 'Low', typical: 'Mid-range', high: 'High', 'very-high': 'Very High' };
 export type Preferences = { radius: Radius; fuel: FuelGrade; brands: Brand[]; sort: Sort };
 export const DEFAULT_PREFERENCES: Preferences = { radius: 5, fuel: 'regular', brands: [], sort: 'cheapest' };
 export type LocationResult = { id: string; label: string; displayName: string; position: Coordinates; countryCode: string };

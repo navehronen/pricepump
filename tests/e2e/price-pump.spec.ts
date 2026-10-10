@@ -34,7 +34,7 @@ test('real demo endpoints: manual lookup, address ambiguity, and initial 20 resu
   await page.getByRole('button',{name:'Irvine, CA, USA',exact:true}).click();
   await expect(page.locator('.station-card')).toHaveCount(20);
   await expect(page.locator('.results-summary')).not.toContainText(/Avg\.|average|\$|\/gal/i);
-  await expect(page.locator('.tier-badge').filter({hasText:'Typical'}).first()).toBeVisible();
+  await expect(page.locator('.tier-badge').filter({hasText:'Mid-range'}).first()).toBeVisible();
   await expect(page.getByRole('combobox',{name:'Fuel grade'})).toHaveValue('regular');
   await expect(page.getByRole('combobox',{name:'Sort by'})).toHaveValue('cheapest');
 });

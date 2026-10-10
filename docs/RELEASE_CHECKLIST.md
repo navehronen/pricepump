@@ -4,7 +4,7 @@ Release status — October 9, 2026: live production is available at [pricepump.v
 
 ## v1.0.1 patch gate
 
-The owner confirmed CI passed for `main` and `v1.0.0`. The follow-up patch removes aggregate fuel-price statistics, updates screenshots, and adds live HERE notices. Preserve existing tags; push `main` and `v1.0.1` without force. Wait for CI and Vercel, then confirm the updated summary and notices on desktop/iPhone. Do not make GitHub public yet. Review the account-specific cache permission noted in [HERE notices](HERE_NOTICES.md). Existing physical-iPhone success describes v1.0.0; the patch needs a focused hosted smoke check.
+The owner confirmed CI passed for `main` and `v1.0.0`. The follow-up patch removes aggregate fuel-price statistics, updates screenshots, and adds live HERE notices. The final local v1.0.1 commit/tag includes the live-cache fix and Mid-range label. Push main and v1.0.1 together without force after local verification. The owner confirmed the existing firewall rule was published at 15 requests per 60 seconds per IP on October 10, 2026. Wait for CI and Vercel, then confirm the updated summary and notices on desktop/iPhone. Do not make GitHub public yet. Live HERE caching has been disabled as described in [HERE notices](HERE_NOTICES.md). Existing physical-iPhone success describes v1.0.0; the patch needs a focused hosted smoke check.
 
 ## 1. Publish source to GitHub
 
@@ -28,7 +28,7 @@ The owner confirmed CI passed for `main` and `v1.0.0`. The follow-up patch remov
 1. Import the GitHub repository. Choose Next.js and Node.js 24.x. The root must be the directory containing this app's `package.json`; if the repository contains only this app, leave the root at `.`.
 2. Install command: `corepack pnpm install --frozen-lockfile`. Build command: `pnpm build`. Keep default Next.js output settings; do not configure a static export.
 3. Set `ENABLE_EXPERIMENTAL_COREPACK=1` and `NEXT_TELEMETRY_DISABLED=1` for Production and Preview. Verify Node 24.x and pnpm 11.25.0 in build logs. Initially set Production and Preview `DATA_PROVIDER=demo`, with no HERE key. This lets you establish the project and firewall before exposing paid live endpoints.
-4. In **Firewall → Configure → New Rule**, match paths beginning `/api/`. Select **Rate Limit**, **Fixed Window**, **60 seconds**, **30 requests**, counting key **IP**, and the **Default (429)** action. Save, Review Changes, and Publish. Verify enforcement while still in demo mode and confirm blocked traffic in the firewall view. A Log-only action does not enforce the limit.
+4. Edit the existing **PricePump API rate limit** rule in **Firewall → Configure** (do not create a duplicate). Match paths beginning `/api/`. Select **Rate Limit**, **Fixed Window**, **60 seconds**, **15 requests**, counting key **IP**, and the **Default (429)** action. Save, Review Changes, and Publish. Verify enforcement while still in demo mode and confirm blocked traffic in the firewall view. A Log-only action does not enforce the limit.
 5. In **Settings → Environment Variables**, privately set Production `DATA_PROVIDER=here` and `HERE_API_KEY` to your real value. Do not create `NEXT_PUBLIC_HERE_API_KEY`. Keep Preview `DATA_PROVIDER=demo` with no HERE credential.
 6. Manually redeploy Production after changing environment variables. Retain Standard Protection for non-production URLs and check that the production domain is public without sign-in.
 

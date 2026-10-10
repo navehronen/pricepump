@@ -6,9 +6,9 @@ Drivers often trade off price, distance, fuel grade, and preferred brands across
 
 > **Live app:** [pricepump.vercel.app](https://pricepump.vercel.app) — deployed on Vercel with live HERE data. PricePump helps drivers compare nearby US gas stations by price, distance, fuel grade, and brand. No accounts or database are required.
 
-> **Verification:** 58 unit/component/server tests and 29 Chromium browser tests cover business rules, accessibility, mobile/desktop layouts, and pagination. Hosted live HERE and firewall checks passed. The project owner reported successful desktop/mobile manual testing and final physical-iPhone QA on the live site on October 9, 2026. Device/iOS versions were not recorded; this is not broad device certification. See [verification details](docs/VERIFICATION.md).
+> **Verification:** 62 unit/component/server tests and 30 Chromium browser tests cover business rules, accessibility, mobile/desktop layouts, and pagination. Hosted live HERE and firewall checks passed. The project owner reported successful desktop/mobile manual testing and final physical-iPhone QA on the live site on October 9, 2026. Device/iOS versions were not recorded; this is not broad device certification. See [verification details](docs/VERIFICATION.md).
 
-The v1.0.1 patch removes aggregate fuel-price statistics and adds live HERE notices; hosted verification of this patch follows its push and deployment. See [HERE notice review](docs/HERE_NOTICES.md) for scope and the account-specific cache-permission question.
+The v1.0.1 changes remove aggregate fuel-price statistics, add live HERE notices, and disable live HERE response caching; hosted verification of this patch follows its push and deployment. See [HERE notice review](docs/HERE_NOTICES.md) for scope and the live no-cache policy.
 
 ## Screenshots
 
@@ -38,11 +38,11 @@ The app screenshots show fictional demo data. The separate Apple Maps verificati
 - 5, 10, and 15-mile radii; Regular, Mid-grade, and Premium.
 - Multi-select Chevron, ARCO, Shell, 76, Mobil, Costco, Sinclair, and 7-Eleven; Any Brand also includes independent/unlisted brands.
 - Cheapest or Nearest sorting, with missing prices always last.
-- Relative price tiers with color **and text**: Low, Typical, High, Very High.
+- Relative price tiers with color **and text**: Low, Mid-range, High, Very High.
 - Price-specific freshness warnings at more than 24 and 48 hours.
 - Station details, all available fuel grades, and Google/Apple Maps directions.
 - List and OpenStreetMap views with price markers and required attribution.
-- Twenty visible cards initially; cached local expansion followed by deliberate provider pagination.
+- Twenty visible cards initially; local expansion of the active results followed by deliberate provider pagination.
 - Device-local preferences, keyboard controls, accessible dialogs, reduced-motion support, and responsive layouts.
 - Clearly labeled demo data; live errors never fall back to fictitious prices.
 
@@ -124,7 +124,7 @@ Only `demo` and `here` are supported modes; an unset mode selects demo. No key i
 ```mermaid
 flowchart LR
     Browser[Browser: location and controls] -->|Rounded search center| API[Next.js POST endpoints]
-    API --> Guards[Validation + rate limit + short cache]
+    API --> Guards[Validation + rate limit + demo-only cache]
     Guards --> Adapter[Provider adapter]
     Adapter --> HERE[HERE APIs]
     HERE --> Normalize[Normalize to Station]
@@ -176,11 +176,11 @@ percentile = (((first + last) / 2) + 0.5) / validPriceCount
 | Percentile | Label | Color |
 | --- | --- | --- |
 | Under 25% | Low | Green |
-| 25% to under 75% | Typical | Yellow |
+| 25% to under 75% | Mid-range | Yellow |
 | 75% to under 90% | High | Orange |
 | 90% and above | Very High | Red |
 
-One valid price or an all-equal set is Typical. Small sets need not contain every tier. Ties are never split merely to force exact group sizes. Categories are relative to **currently loaded, matching stations**, not a regional market statistic.
+One valid price or an all-equal set is Mid-range. Small sets need not contain every tier. Ties are never split merely to force exact group sizes. Categories are relative to **currently loaded, matching stations**, not a regional market statistic.
 
 Prices more than 24 hours old are flagged as potentially outdated; more than 48 hours old get the stronger warning. Unknown or implausibly future timestamps say “Update time unavailable.” Price display rounds to cents; comparisons retain provider precision.
 
@@ -193,7 +193,7 @@ Only 20 cards initially render. Show More reveals 20 additional locally availabl
 - No database, user accounts, analytics, or saved location history.
 - Browser coordinates live only in component memory. The browser rounds coordinates to a 0.01-degree grid for station and reverse-label requests.
 - The provider search radius adds 800 meters to cover grid displacement. The browser filters using the exact radius and calculates exact straight-line distances locally.
-- Server cache keys contain only coarse search centers, radius, page, and provider. Cached station coordinates describe businesses, not user locations.
+- Live HERE results are not cached or shared between requests. Only fictional demo searches use the server cache. The browser retains live results only for the current search display and does not save them in localStorage.
 - A **manual address is sent through the server to HERE** to perform the requested lookup. These requests/responses are not application-cached or logged.
 - localStorage key `price-pump.preferences.v1` contains only radius, fuel, selected brands, and sorting. Clearing browser site data resets preferences. List/Map choice is not saved.
 - OpenStreetMap receives tile requests and associated network information when Map is opened. Moving a map can request map tiles, but never fuel-price searches.
@@ -203,11 +203,13 @@ Only 20 cards initially render. Show More reveals 20 additional locally availabl
 ## API cost protection
 
 - Credentials and all HERE calls stay in server-only modules.
-- Identical coarse-area/page requests use a **5-minute**, bounded, process-local memory cache. Concurrent identical requests share one upstream call. Failures are not cached.
+- **Live HERE mode:** every API request independently calls HERE. No response cache or concurrent-request sharing is used, regardless of upstream cache headers. Fetches and API responses use `no-store`. Explicit radius changes and repeated searches fetch again; prior searches are not retained in the browser search cache.
+- **Demo mode:** identical coarse-area/page requests retain the existing **5-minute** bounded memory cache and concurrent-request sharing. Failures are not cached.
+- Sorting, grades, brands, details, and List/Map still operate on the current screen’s loaded results. Show More reveals loaded cards before requesting another page. Results are discarded when a new live search starts.
 - Changing brand, grade, sorting, list/map, opening details, and panning the map do not call HERE. A smaller radius reuses already retrieved coverage; increasing beyond it is an explicit search.
 - Manual lookup runs on form submission, never on every keystroke. No polling, scheduled refresh, or automatic provider retry loop.
-- Per-client API calls are limited to **30 per minute**. Temporary salted hashes identify clients; raw IPs are not retained in the limiter. Locally, requests share one bucket. In Vercel, the platform-provided forwarding header identifies the client.
-- Memory caches/counters reset on process restart and are not shared across serverless instances. They reduce accidental load, but **do not guarantee a global spending cap**. The bounded pagination input is not authentication, and a determined distributed attacker can still consume requests.
+- The production Vercel firewall limits `/api/` to **15 requests per 60 seconds per IP** (owner confirmed publication October 10, 2026). The separate process-local app limiter remains **30 per minute**. Temporary salted hashes identify clients; raw IPs are not retained in the limiter. Locally, requests share one bucket. In Vercel, the platform-provided forwarding header identifies the client.
+- Demo caches and rate-limit counters reset on process restart and are not shared across serverless instances. They reduce accidental load, but **do not guarantee a global spending cap**. The bounded pagination input is not authentication, and a determined distributed attacker can still consume requests.
 - Before publicly exposing live credentials, add the Vercel Firewall rule below and configure available usage alerts/limits in HERE. A shared quota service would strengthen a future version but is intentionally outside the no-database V1.
 
 ## Test and verify
@@ -222,11 +224,11 @@ pnpm exec playwright install chromium
 pnpm test:e2e
 ```
 
-The browser suite starts the production build in demo mode on `127.0.0.1:3100`, with an empty HERE key. It never automatically reuses the live development server on port 3000. Build first. A preflight check rejects a live-mode test server before searches. Screenshots are generated in `docs/screenshots`. CI runs checks on pull requests and pushes. Controlled fixtures test failures without spending HERE credits; actual demo endpoints are also tested.
+The browser suite starts the production build in demo mode on `127.0.0.1:3100` and HERE UI mode on `127.0.0.1:3101`, both with empty HERE keys. All HERE UI test API calls are intercepted with fixtures. It never automatically reuses the live development server on port 3000. Build first. A preflight check rejects a live-mode test server before searches. Screenshots are generated in `docs/screenshots`. CI runs checks on pull requests and pushes. Controlled fixtures test failures without spending HERE credits; actual demo endpoints are also tested.
 
 On Windows environments where Playwright hangs during child-server shutdown, start a separate terminal with `$env:DATA_PROVIDER='demo'`, `$env:HERE_API_KEY=''`, and `pnpm exec next start --hostname 127.0.0.1 --port 3100`. In the test terminal set `$env:PRICE_PUMP_EXTERNAL_DEMO_SERVER='1'` before `pnpm test:e2e`. Stop the dedicated demo server afterward. This workaround was used successfully for the final local run; CI uses automatic server management.
 
-Live coverage checks are deliberately skipped by default. With a live server on port 3000, opt in using `$env:PRICE_PUMP_LIVE_QA='1'` and `pnpm exec vitest run tests/live-qa.test.ts --configLoader runner`. This makes up to 21 local API requests (fewer paid calls when cache entries exist). Remove that environment variable afterward. Live results can change; this suite is not part of CI.
+Live coverage checks are deliberately skipped by default. With a live server on port 3000, opt in using `$env:PRICE_PUMP_LIVE_QA='1'` and `pnpm exec vitest run tests/live-qa.test.ts --configLoader runner`. This makes up to 21 local API requests (live responses are not cached). Remove that environment variable afterward. Live results can change; this suite is not part of CI.
 
 See [verification notes](docs/VERIFICATION.md) for the checks actually run and their limitations.
 
@@ -247,7 +249,7 @@ Corepack selects the pinned pnpm **11.25.0**. Confirm Node and pnpm versions in 
 
 **Manual account steps:** sign in to GitHub and Vercel, complete MFA, create the empty private repository, and authorize Vercel for only that repository. Review Hobby's personal/non-commercial terms; do not enable a paid upgrade unintentionally. Deploy in demo mode first.
 
-Before enabling live data, publish a Vercel Firewall rule matching paths beginning `/api/`: Rate Limit, Fixed Window, **30 requests per 60 seconds per IP**, **Default (429)** action. Save, Review Changes, Publish. Verify enforcement and firewall events in demo mode without spending HERE requests. Counters are regional, not a global spending ceiling. Check your HERE account's public-display terms, attribution requirements, usage alerts, and available limits.
+Before enabling live data, publish a Vercel Firewall rule matching paths beginning `/api/`: Rate Limit, Fixed Window, **15 requests per 60 seconds per IP**, **Default (429)** action. Save, Review Changes, Publish. Verify enforcement and firewall events in demo mode without spending HERE requests. Counters are regional, not a global spending ceiling. Check your HERE account's public-display terms, attribution requirements, usage alerts, and available limits.
 
 **Manual key entry:** in Vercel Project Settings → Environment Variables, enter the real `HERE_API_KEY` for **Production only**, change `DATA_PROVIDER` to `here`, then redeploy. Never paste the key into source or chat. Keep Standard Protection for non-production URLs and verify the production domain opens without login.
 
@@ -259,7 +261,7 @@ References: [Vercel builds/Corepack](https://vercel.com/docs/builds/configure-a-
 
 Implemented and locally verified: buildable responsive UI, normalized provider boundary, secret separation, input validation, local preferences, business rules, controlled pagination, basic abuse safeguards, and automated regression tests.
 
-Still MVP-level: process-local cache/rate limit, progressive rather than exhaustive cheapest-station search, basic brand aliases, straight-line distance, public OpenStreetMap tiles without an SLA, no operational monitoring dashboard, and no guarantee of provider completeness or current pump prices. Hosted HTTPS smoke checks passed, and the owner reported successful physical-iPhone QA. Broader iOS/browser coverage, physical Android testing, load testing, and a human screen-reader audit remain unverified. Successful checks in seven areas do not prove nationwide coverage. At higher map traffic, select a suitable OSM-compatible tile host under the [OpenStreetMap tile usage policy](https://operations.osmfoundation.org/policies/tiles/); do not bulk-prefetch tiles.
+Still MVP-level: process-local rate limit and demo cache, progressive rather than exhaustive cheapest-station search, basic brand aliases, straight-line distance, public OpenStreetMap tiles without an SLA, no operational monitoring dashboard, and no guarantee of provider completeness or current pump prices. Hosted HTTPS smoke checks passed, and the owner reported successful physical-iPhone QA. Broader iOS/browser coverage, physical Android testing, load testing, and a human screen-reader audit remain unverified. Successful checks in seven areas do not prove nationwide coverage. At higher map traffic, select a suitable OSM-compatible tile host under the [OpenStreetMap tile usage policy](https://operations.osmfoundation.org/policies/tiles/); do not bulk-prefetch tiles.
 
 The cash/credit distinction is deliberately deferred: the app does not assert that the displayed standard price is the price for a particular payment method.
 

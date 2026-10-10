@@ -42,7 +42,7 @@ export default function PricePumpApp({ mode }: { mode: ProviderMode }) {
     const locationKey = JSON.stringify(target.position);
     if (cacheLocation.current !== locationKey) { searchCache.current.clear(); cacheLocation.current = locationKey; }
     try {
-      let cached = searchCache.current.get(String(radius));
+      let cached = mode === 'demo' ? searchCache.current.get(String(radius)) : undefined;
       if (cached && Date.now() - cached.at >= 300_000) cached = undefined;
       let page: StationPage, outer: 'none' | 'loaded' | 'failed' = 'none';
       if (cached && Date.now() - cached.at < 300_000) { page = cached.page; outer = cached.outer; }
@@ -58,13 +58,13 @@ export default function PricePumpApp({ mode }: { mode: ProviderMode }) {
         }
       }
       if (generation.current !== requestId) return;
-      searchCache.current.set(String(radius), { page, outer, at: cached?.at ?? Date.now() });
+      if (mode === 'demo') searchCache.current.set(String(radius), { page, outer, at: cached?.at ?? Date.now() });
       setOuterStatus(outer);
       setStations(page.stations); setNextOffset(page.nextOffset); setLoadedRadius(radius); setSearchId(requestId);
       setCoverage({ complete: page.complete, total: page.total, retrievedCount: page.retrievedCount, limitReason: page.limitReason });
     } catch (e) { if (generation.current === requestId && !(e instanceof DOMException && e.name === 'AbortError')) setError(e instanceof Error ? e.message : "We couldn't load current prices. Try again."); }
     finally { if (generation.current === requestId) setBusy(false); }
-  }, []);
+  }, [mode]);
   const chooseLocation = (target: LocationResult) => { void runSearch(target, prefsRef.current.radius); };
   function locate(point: Coordinates) {
     const target: LocationResult = { id: 'device', label: 'Current location', displayName: 'Current location', position: point, countryCode: '' };
@@ -78,7 +78,7 @@ export default function PricePumpApp({ mode }: { mode: ProviderMode }) {
   }
   function updatePreferences(next: Preferences) {
     const prior = prefsRef.current; prefsRef.current = next; setPrefs(next); savePreferences(next); setVisible(20);
-    if (location && prior.radius !== next.radius && (!loadedRadius || next.radius > loadedRadius || !coverage.complete)) void runSearch(location, next.radius);
+    if (location && prior.radius !== next.radius && (mode === 'here' || !loadedRadius || next.radius > loadedRadius || !coverage.complete)) void runSearch(location, next.radius);
   }
   const matching = useMemo(() => location ? selectStations(stations, location.position, prefs) : [], [stations, location, prefs]);
   const tiers = useMemo(() => classifyPrices(matching, prefs.fuel), [matching, prefs.fuel]);
@@ -94,8 +94,10 @@ export default function PricePumpApp({ mode }: { mode: ProviderMode }) {
       const page = await api<StationPage>('/api/stations', { center: coarseCenter(location.position), radius: loadedRadius, offset: nextOffset }, controller.current?.signal);
       if (generation.current !== id) return;
       const combined = mergeStations(stations, page.stations);
-      const cached = searchCache.current.get(String(loadedRadius));
-      searchCache.current.set(String(loadedRadius), { page: { ...page, stations: combined }, outer: outerStatus, at: cached?.at ?? Date.now() });
+      if (mode === 'demo') {
+        const cached = searchCache.current.get(String(loadedRadius));
+        searchCache.current.set(String(loadedRadius), { page: { ...page, stations: combined }, outer: outerStatus, at: cached?.at ?? Date.now() });
+      }
       setStations(combined); setNextOffset(page.nextOffset); setVisible(v => Math.min(v, matching.length) + 20);
       setCoverage({ complete: page.complete, total: page.total, retrievedCount: page.retrievedCount, limitReason: page.limitReason });
     } catch (e) { if (generation.current === id) setError(e instanceof Error ? e.message : "We couldn't load current prices. Try again."); }

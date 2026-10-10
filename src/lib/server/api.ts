@@ -53,6 +53,9 @@ export function endpoint<T>(schema: z.ZodType<T>, handler: (input: T) => Promise
 }
 export const searchHandler = endpoint(searchSchema, async input => {
   const center = coarseCenter(input.center);
+  // Live responses are neither retained nor coalesced across requests/users.
+  // Do not infer caching permission from the five-minute demo TTL.
+  if (providerMode() === 'here') return getProvider().search({ ...input, center });
   const key = JSON.stringify([providerMode(), center.lat, center.lng, input.radius, input.offset, !!input.outer]);
   return services.cache.get(key, () => getProvider().search({ ...input, center }));
 });

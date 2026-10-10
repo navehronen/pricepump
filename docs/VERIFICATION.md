@@ -1,5 +1,26 @@
 # PricePump v1.0.0 release verification — October 9, 2026
 
+## Final v1.0.1 release preparation — October 10, 2026
+
+- Owner confirmed the existing Vercel PricePump API rate-limit rule is published at **15 requests per 60 seconds per IP**. This pass records that confirmation; it did not independently access the firewall dashboard or repeat a production request burst. The separate application limiter remains 30/minute.
+- Final rerun: type checking passed; **62 unit/component/server tests passed**, six paid live tests skipped; **30 browser tests passed** with clean exit; Webpack production build passed. Windows generated-directory permissions required local repair, with no source workaround.
+- Verified live requests bypass shared response caching/coalescing, previous live radius searches are not cached, and demo caching remains intact. Mid-range is the displayed middle tier, numerical aggregate prices remain absent, and HERE notices remain present.
+- Secret scan: zero exact-key matches across 76 publishable files, 110 existing historical blobs, and 197 generated build/test files. Server-only credential access and no-store headers remain intact; real environment files remain ignored. Staged contents are checked again before commit.
+- The local v1.0.1 tag is updated to the final release commit under the owner's release authorization; the prior notice-only commit stays in history and v1.0.0 is unchanged. GitHub remote inspection was unavailable because the sandbox credential helper failed; no push or remote mutation was attempted. Manual push must not use force.
+- Push, GitHub CI, Vercel deployment, and a focused hosted desktop/iPhone smoke check of v1.0.1 remain pending. Earlier owner-reported iPhone success applies to v1.0.0. Repository visibility is unchanged.
+
+
+## Live cache revision — October 9, 2026 (pending commit/tag)
+
+- Confirmed the old process-global cache reused/coalesced HERE requests across users. Live station requests now bypass that cache; transport and API responses remain no-store. Geocode and reverse routes were already uncached.
+- Live browser radius-search caching is disabled. Explicit searches, including returning to a previous radius, fetch fresh data. Only active-screen results remain for local interactions and pagination display. Fictional demo server/browser caching is unchanged.
+- Display label changed from Typical to **Mid-range**; tier keys, rank calculations, and colors are unchanged. Numerical aggregate price displays remain absent. Screenshots were regenerated.
+- Type checking, 62 unit/component/server tests, and Webpack production build passed. Six paid live tests remain opt-in/skipped. New server tests exercise concurrent different users and sequential same-user calls with absent, no-store, and permissive upstream cache headers; all independently call HERE. Demo caching/coalescing still passes.
+- **30 browser tests passed with a clean exit**, including the 29 established demo tests plus one live-mode UI test with all API responses intercepted and no real credential. It verifies fresh radius/repeated searches, active-result local interactions, pagination, and the new label. The test servers on 3100/3101 use demo/here respectively with empty credentials.
+- Exact-key scan: zero matches across 76 publishable files, 110 historical Git blobs, and 195 generated build/test files. No real environment or generated artifact paths are publishable; .env.local remains ignored.
+- Vercel firewall configuration, app limiter, credentials, dependency versions, and unrelated UI behavior are unchanged. No tag or remote was changed. Hosted deployment/iPhone smoke testing must follow the eventual release push.
+
+
 ## v1.0.1 supplier-notice patch — October 9, 2026
 
 - Removed the numerical aggregate fuel-price helper, UI prop/memo, display, and obsolete test assertions. Missing-price messaging remains. The middle percentile label is Typical; ranking math and colors are unchanged.

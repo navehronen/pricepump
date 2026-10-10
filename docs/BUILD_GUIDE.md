@@ -4,7 +4,7 @@
 
 1. You press **Use My Location**. The browser asks permission and returns coordinates. Alternatively, you submit text and HERE translates it into coordinates.
 2. The browser keeps the precise search point in memory, rounds a copy, and sends that approximate point to your own Next.js server endpoint.
-3. The server validates the request, checks its rate limiter, then checks a five-minute cache. If necessary, it calls HERE using the private environment key.
+3. The server validates the request, checks its rate limiter, then calls HERE using the private environment key. Live requests never share responses; only demo mode uses a five-minute cache.
 4. The HERE adapter translates raw data into Price Pump's `Station` type. Think of it as a translator: every component receives the same familiar vocabulary even if the provider changes later.
 5. The browser computes straight-line distances from the precise point, excludes stations outside your chosen radius, filters brands, ranks prices, and renders cards or map pins.
 
@@ -12,7 +12,7 @@ Manual address lookup is the exception to “precise coordinates stay in the bro
 
 ## Why there is a server without a database
 
-The server's job is to protect the API key, validate requests, and reduce repeated paid calls. It does not need to remember users. A database stores durable records; this product doesn't need durable records for V1. Short-lived memory caches are temporary optimization, not durable user storage.
+The server's job is to protect the API key, validate requests, and reduce repeated paid calls. It does not need to remember users. A database stores durable records; this product doesn't need durable records for V1. Short-lived memory caches are used only for fictional demo data. Live results remain only in the active screen, not a reusable search cache.
 
 The absence of a database is a scope decision, not an assertion that databases are bad. Accounts, notifications, and price histories would justify durable storage later.
 
@@ -34,24 +34,24 @@ The absence of a database is a scope decision, not an assertion that databases a
 
 “Cheap” depends on the area. A $4.50 price might be low in one city and high in another, so hard-coding dollar thresholds would mislead people.
 
-Price Pump compares each valid selected-grade price with the other currently loaded matching prices. Roughly the bottom quarter are Low, the middle half Typical, the next 15% High, and the top 10% Very High. Equal prices receive the same classification. If every price is equal, they are all Typical. Missing prices receive no tier and come last.
+Price Pump compares each valid selected-grade price with the other currently loaded matching prices. Roughly the bottom quarter are Low, the middle half Mid-range, the next 15% High, and the top 10% Very High. Equal prices receive the same classification. If every price is equal, they are all Mid-range. Missing prices receive no tier and come last.
 
-For example, with 100 distinct prices, 25 are Low, 50 Typical, 15 High, and 10 Very High. With two identical prices, both are Typical. Ties and very small groups make exact percentages impossible, which is why the algorithm prioritizes consistent treatment rather than perfect quotas.
+For example, with 100 distinct prices, 25 are Low, 50 Mid-range, 15 High, and 10 Very High. With two identical prices, both are Mid-range. Ties and very small groups make exact percentages impossible, which is why the algorithm prioritizes consistent treatment rather than perfect quotas.
 
 Loading more stations can change a station's tier without its price changing. The comparison set changed. The interface explicitly explains this limitation.
 
 ## How costs are controlled
 
-Caching means “we just answered this nearby search—reuse it briefly.” Rate limiting means “this caller is asking too often—wait a minute.” They solve different problems.
+Demo caching means “we just answered this nearby search—reuse it briefly.” Live HERE mode deliberately disables this optimization. Rate limiting means “this caller is asking too often—wait a minute.” They solve different problems.
 
-Fuel and brand filters, sorting, details, and map/list changes use data already in the browser. The first 50-provider-result page can serve several 20-card display batches. Partial 10/15-mile searches also request one outer-area sample page, so the map visibly covers the wider area without downloading every nearby station. This is capped at two initial requests, both cached and rate-limited. Further nearest-first pages require an explicit Show More click. No polling or map-pan fuel requests occur.
+Fuel and brand filters, sorting, details, and map/list changes use data already in the browser. The first 50-provider-result page can serve several 20-card display batches. Partial 10/15-mile searches also request one outer-area sample page, so the map visibly covers the wider area without downloading every nearby station. This is capped at two initial requests, both rate-limited; caching applies only to demo data. Further nearest-first pages require an explicit Show More click. No polling or map-pan fuel requests occur.
 
 The memory limiter isn't sufficient for a large distributed deployment because different server instances have different memory. The Vercel Firewall rule adds platform-level protection. Even that is not an absolute provider spending cap; distributed abuse and provider terms still matter. These are honest MVP limits to discuss in an interview.
 
 ## Location, map, and localStorage
 
 - Browser location works on localhost and HTTPS, after permission. Denial isn't a dead end: manual search remains available.
-- A 0.01-degree area grid improves cache reuse and avoids sending the exact device coordinates. Adding 800 meters to the provider radius prevents losing stations near the rounding boundary. Exact filtering happens locally.
+- A 0.01-degree area grid avoids sending the exact device coordinates and improves demo-cache reuse. Adding 800 meters to the provider radius prevents losing stations near the rounding boundary. Exact filtering happens locally.
 - Leaflet places pins on OpenStreetMap tiles. It doesn't discover station prices. Moving the map requests map images as needed, not HERE fuel data.
 - Navigation links carry a destination only. The chosen maps app handles routes and the starting point.
 - localStorage remembers only radius, grade, brands, and sorting on that device. It is not an account, cloud sync, or location history. A blocked storage API doesn't break searching.

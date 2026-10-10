@@ -2,9 +2,34 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { ExpiringCache } from '@/lib/server/cache';
 import { RateLimiter } from '@/lib/server/limiter';
-import { endpoint, searchSchema, geocodeSchema } from '@/lib/server/api';
+import { endpoint, searchHandler, searchSchema, geocodeSchema } from '@/lib/server/api';
 import { hereProvider, hereRequest } from '@/lib/providers/here';
+import { demoProvider } from '@/lib/providers/demo';
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
+describe('provider-specific response reuse', () => {
+  const request = (client: string) => new Request('https://pricepump.example/api/stations', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', 'x-vercel-forwarded-for': client },
+    body: JSON.stringify({ center: { lat: 33.68, lng: -117.83 }, radius: 5, offset: 0 }),
+  });
+  it.each([undefined, 'no-store', 'public, max-age=300'])('never caches or coalesces HERE searches, even with upstream %s', async header => {
+    vi.stubEnv('DATA_PROVIDER', 'here'); vi.stubEnv('HERE_API_KEY', 'unit-test-placeholder'); vi.stubEnv('VERCEL', '1');
+    const fetcher = vi.fn(async () => Response.json({ stations: [], total: 0 }, { headers: header ? { 'Cache-Control': header } : {} }));
+    vi.stubGlobal('fetch', fetcher);
+    const results = await Promise.all([searchHandler(request('198.51.100.10')), searchHandler(request('198.51.100.11'))]);
+    results.push(await searchHandler(request('198.51.100.10')));
+    expect(fetcher).toHaveBeenCalledTimes(3);
+    for (const result of results) { expect(result.status).toBe(200); expect(result.headers.get('cache-control')).toBe('no-store'); }
+    for (const call of fetcher.mock.calls) expect((call as unknown as [URL, RequestInit])[1].cache).toBe('no-store');
+  });
+  it('still caches and coalesces demo searches', async () => {
+    vi.stubEnv('DATA_PROVIDER', 'demo'); vi.stubEnv('VERCEL', '1');
+    const search = vi.spyOn(demoProvider, 'search');
+    const results = await Promise.all([searchHandler(request('198.51.100.20')), searchHandler(request('198.51.100.21'))]);
+    results.push(await searchHandler(request('198.51.100.20')));
+    expect(search).toHaveBeenCalledTimes(1);
+    for (const result of results) expect(result.status).toBe(200);
+  });
+});
 describe('short-term cache', () => {
   it('coalesces concurrent requests, caches successes, and expires entries', async () => {
     let now = 0; const cache = new ExpiringCache<number>(300_000,2,() => now), load = vi.fn(async () => 42);
