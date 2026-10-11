@@ -18,4 +18,4 @@ This resolves the identified shared-cache mechanism without relying on an accoun
 
 ## Release handling
 
-The final local `v1.0.1` tag includes the live cache revision and Mid-range wording. The earlier notice-only commit remains in history. Published `v1.0.0` is preserved. Push main and v1.0.1 without force, then wait for GitHub Actions and Vercel. Check the summary, label, notices, and fresh radius searches on desktop/iPhone. The owner confirmed the existing firewall rule is published at 15 requests per 60 seconds per IP; no credential or environment change is needed.
+Release `v1.0.1` at commit `822e18f` includes the live cache revision and Mid-range wording. The owner confirmed successful final GitHub Actions, Vercel deployment, desktop testing, and physical-iPhone QA on October 10, 2026. The published firewall rule is 15 requests per 60 seconds per IP. Earlier commits and the v1.0.0 tag remain historical records; repository visibility is controlled separately by the owner.

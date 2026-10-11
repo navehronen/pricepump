@@ -1,10 +1,10 @@
 # Price Pump V1 release checklist
 
-Release status — October 9, 2026: live production is available at [pricepump.vercel.app](https://pricepump.vercel.app). GitHub Actions passed for release candidate fffbc14. Hosted HERE checks and firewall enforcement passed, and the owner reported final physical-iPhone QA passed on the live site. GitHub remains private; visibility changes require the owner. The steps below remain a reproducible release/rollback checklist.
+Release status — October 10, 2026: **v1.0.1 is deployed at [pricepump.vercel.app](https://pricepump.vercel.app)**. The owner confirmed final GitHub Actions, Vercel deployment, desktop testing, and physical-iPhone QA passed. GitHub visibility remains an owner-controlled step. The checklist below is retained for future deployments and rollback.
 
-## v1.0.1 patch gate
+## v1.0.1 completed release
 
-The owner confirmed CI passed for `main` and `v1.0.0`. The follow-up patch removes aggregate fuel-price statistics, updates screenshots, and adds live HERE notices. The final local v1.0.1 commit/tag includes the live-cache fix and Mid-range label. Push main and v1.0.1 together without force after local verification. The owner confirmed the existing firewall rule was published at 15 requests per 60 seconds per IP on October 10, 2026. Wait for CI and Vercel, then confirm the updated summary and notices on desktop/iPhone. Do not make GitHub public yet. Live HERE caching has been disabled as described in [HERE notices](HERE_NOTICES.md). Existing physical-iPhone success describes v1.0.0; the patch needs a focused hosted smoke check.
+Release commit `822e18f` includes the live-cache fix, Mid-range label, removal of numerical aggregate fuel prices, and HERE notices. Final CI, deployment, desktop testing, and physical-iPhone QA passed, as confirmed by the owner on October 10, 2026. The published Vercel firewall rule is 15 requests per 60 seconds per IP. See [HERE notices](HERE_NOTICES.md) for the live no-cache policy.
 
 ## 1. Publish source to GitHub
 

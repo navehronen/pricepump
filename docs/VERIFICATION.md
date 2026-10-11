@@ -1,4 +1,8 @@
-# PricePump v1.0.0 release verification — October 9, 2026
+# PricePump release verification
+
+## Current release — v1.0.1
+
+On October 10, 2026, the owner confirmed that v1.0.1 passed final GitHub Actions, Vercel deployment, live desktop testing, and physical-iPhone QA. Production: [pricepump.vercel.app](https://pricepump.vercel.app). Source release: `822e18f`. Device/iOS versions were not supplied; this does not establish broad device certification. The records below describe earlier verification stages and are superseded by this completed-release status where they describe outstanding release steps.
 
 ## Final v1.0.1 release preparation — October 10, 2026
 
@@ -7,10 +11,10 @@
 - Verified live requests bypass shared response caching/coalescing, previous live radius searches are not cached, and demo caching remains intact. Mid-range is the displayed middle tier, numerical aggregate prices remain absent, and HERE notices remain present.
 - Secret scan: zero exact-key matches across 76 publishable files, 110 existing historical blobs, and 197 generated build/test files. Server-only credential access and no-store headers remain intact; real environment files remain ignored. Staged contents are checked again before commit.
 - The local v1.0.1 tag is updated to the final release commit under the owner's release authorization; the prior notice-only commit stays in history and v1.0.0 is unchanged. GitHub remote inspection was unavailable because the sandbox credential helper failed; no push or remote mutation was attempted. Manual push must not use force.
-- Push, GitHub CI, Vercel deployment, and a focused hosted desktop/iPhone smoke check of v1.0.1 remain pending. Earlier owner-reported iPhone success applies to v1.0.0. Repository visibility is unchanged.
+- Subsequently completed: the owner confirmed the v1.0.1 push/CI, Vercel deployment, desktop testing, and physical-iPhone QA passed. Repository visibility is unchanged.
 
 
-## Live cache revision — October 9, 2026 (pending commit/tag)
+## Live cache revision — October 9, 2026 (historical pre-commit verification)
 
 - Confirmed the old process-global cache reused/coalesced HERE requests across users. Live station requests now bypass that cache; transport and API responses remain no-store. Geocode and reverse routes were already uncached.
 - Live browser radius-search caching is disabled. Explicit searches, including returning to a previous radius, fetch fresh data. Only active-screen results remain for local interactions and pagination display. Fictional demo server/browser caching is unchanged.
@@ -18,7 +22,7 @@
 - Type checking, 62 unit/component/server tests, and Webpack production build passed. Six paid live tests remain opt-in/skipped. New server tests exercise concurrent different users and sequential same-user calls with absent, no-store, and permissive upstream cache headers; all independently call HERE. Demo caching/coalescing still passes.
 - **30 browser tests passed with a clean exit**, including the 29 established demo tests plus one live-mode UI test with all API responses intercepted and no real credential. It verifies fresh radius/repeated searches, active-result local interactions, pagination, and the new label. The test servers on 3100/3101 use demo/here respectively with empty credentials.
 - Exact-key scan: zero matches across 76 publishable files, 110 historical Git blobs, and 195 generated build/test files. No real environment or generated artifact paths are publishable; .env.local remains ignored.
-- Vercel firewall configuration, app limiter, credentials, dependency versions, and unrelated UI behavior are unchanged. No tag or remote was changed. Hosted deployment/iPhone smoke testing must follow the eventual release push.
+- Vercel firewall configuration, app limiter, credentials, dependency versions, and unrelated UI behavior are unchanged. No tag or remote was changed. Hosted deployment and physical-iPhone QA subsequently passed for v1.0.1.
 
 
 ## v1.0.1 supplier-notice patch — October 9, 2026
@@ -31,7 +35,7 @@
 - Exact-key scan found **zero matches** in publishable files, all existing Git-history blobs, generated build output, and test artifacts. Real environment files remain ignored; HERE credential access remains server-only. Key values and matching lines were never printed.
 - The radius browser test now waits for final pagination completion before changing radius. This removes a test race between an in-flight mocked response and the cached-radius assertion; application behavior is unchanged. The initially managed server shutdown stalled on Windows, so final verification uses the existing external-demo-server option.
 - Windows sandbox EPERM issues were resolved by using the project-local temporary directory and precreating the required generated build folders; no application workaround was introduced.
-- Physical-iPhone success reported by the owner and GitHub CI success for main/v1.0.0 predate this patch. The new tag is v1.0.1; v1.0.0 is preserved. Push/redeployment and a focused hosted/iPhone notice check remain pending. Repository visibility is unchanged.
+- Physical-iPhone success reported by the owner and GitHub CI success for main/v1.0.0 predate this patch. The new tag is v1.0.1; v1.0.0 is preserved. These release checks subsequently passed for v1.0.1, as recorded above. Repository visibility is unchanged.
 
 
 Live site: [https://pricepump.vercel.app](https://pricepump.vercel.app).
